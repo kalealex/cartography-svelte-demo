@@ -1,24 +1,27 @@
 <script>
   import * as d3 from 'd3';
-  import {legendColor} from 'd3-svg-legend';
 	import {onMount} from 'svelte';
+  import Map from './Map.svelte';
+  import Histogram from './Histogram.svelte';
 
-  let width = 500;
-	let height = 500;
-	
 	let data = [];
+  let fullData = [];
+
 	onMount(async function() {
     // load data from csv
     let table = d3.csv('chi-health-data.csv', (d) => ({
           ...d,
-          Name: d.Name.substring(6),
+          'Name': d['Name'].substring(6),
+          'EKW_2022': +d['EKW_2022'],
+          'PCT-W_2018-2022': +d['PCT-W_2018-2022'],
+          'VAC_2018-2022': +d['VAC_2018-2022']
         }));
 
     let geocoord = d3.json('census-tracts.geojson')
       .then((d) => d.features);
     
     await Promise.all([table, geocoord]).then((values) => {
-      console.log(values);
+      // console.log(values);
       let table = values[0];
       let geocoord = values[1];
       // join the variables we want to show on the map
@@ -30,65 +33,72 @@
           if (table[j].Name == tract) {
             found = true;
             data.push(geocoord[i]);
-            data[data.length - 1].properties['pop'] = table[j]['Population']
+            data[data.length - 1].properties['population'] = table[j]['Population']
             // data[data.length - 1].properties['popChange'] = table[j]['CIP_2010-2020']
             // data[data.length - 1].properties['rentRatio'] = table[j]['RBU_2018-2022'] / table[j]['RBS_2018-2022']
-            data[data.length - 1].properties['walk'] = table[j]['EKW_2022']
+            data[data.length - 1].properties['walkability'] = table[j]['EKW_2022']
+            data[data.length - 1].properties['percentWhite'] = table[j]['PCT-W_2018-2022']
+            data[data.length - 1].properties['percentVacant'] = table[j]['VAC_2018-2022']
             // grab other variables as needed
           } else {
             j++;
           }
         }
       }
-      console.log(data);
+      // console.log(data);
+      fullData = [...data];
     });
 	});
-
-  let proj = d3.geoMercator()
-    .scale(40000)
-    .center([-87.39, 41.52])
-    .translate([width, height]);
-  let path = d3.geoPath().projection(proj);
-
-  // $: scale = d3.scaleOrdinal(d3.schemeDark2)
-  //   .domain(d3.extent(data.map((d) => +d.properties.name10)));
-  // $: scale = d3.scaleSequential(d3.interpolateGreens)
-  //   .domain(d3.extent(data.map((d) => +d.properties.walk)));
-  $: scale = d3.scaleSequential(d3.interpolatePiYG)
-    .domain([d3.min(data.map((d) => +d.properties.pop)), d3.median(data.map((d) => +d.properties.pop)), d3.max(data.map((d) => +d.properties.pop))]);
-
-  let legend;
-  $: {	
-		const colorLegend = legendColor()
-			.shape('square')
-      .cells(9)
-			.scale(scale);
-		
-		d3.select(legend)
-			.call(colorLegend);
-	}
-
 </script>
 
 <main>
   <h1>Chicago Census Data</h1>
-  
-  <svg {width} {height}>
-    {#each data as d}
-      <path class = "geo"
-        style = "fill: {scale(+d.properties.pop)};"
-        d={path(d)}/>
-    {/each}
 
-    <g transform="translate({width - 100}, 50)"
-		  bind:this={legend} />
-  </svg>
-
+  <div class="flex-container row">
+    <div class="map"><Map data={data}></Map></div>
+    <div class="flex-container col">
+      <div class="hist"><Histogram bind:data={data} fullData={fullData} variable='percentWhite'></Histogram></div>
+      <div class="hist"><Histogram bind:data={data} fullData={fullData} variable='percentVacant'></Histogram></div>
+    </div>
+  </div>
 </main>
 
 <style>
-  .geo {
-    stroke: grey;
-    stroke-width: 1px;
+  .flex-container {
+
+    display: flex;
+    
+    justify-content: center;  
+    /* flex-flow: row; */ 
+    
+
+    height: 100%;
+    padding: 15px;
+    gap: 5px;
+
   }
+
+  .flex-container > div{
+    padding: 8px;
+  }
+
+  .flex-container .row {
+    flex-direction: row;  
+  }
+
+  .flex-container .col {
+    flex-direction: column;  
+  }
+
+  .map { 
+    /* flex:1 1 auto; */
+    flex-grow:1;
+  }
+			
+  .hist { 
+    /* flex:0 1 auto; */
+    flex-grow:0;
+  }
+			
+
 </style>
