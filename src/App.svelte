@@ -6,6 +6,11 @@
 
 	let data = [];
   let fullData = [];
+  let filter1 = [];
+  let filter2 = [];
+
+  let var1 = 'percentWhite';
+  let var2 = 'percentVacant';
 
 	onMount(async function() {
     // load data from csv
@@ -49,16 +54,28 @@
       fullData = [...data];
     });
 	});
+
+  function updateData() {
+    if (filter1.length > 0 && filter2.length > 0) {
+      data = fullData.filter((d) => (d.properties[var1] >= filter1[0] && d.properties[var1] < filter1[1] && d.properties[var2] >= filter2[0] && d.properties[var2] < filter2[1]));
+    } else if (filter1.length > 0 && filter2.length == 0) {
+      data = fullData.filter((d) => (d.properties[var1] >= filter1[0] && d.properties[var1] < filter1[1]));
+    } else if (filter1.length == 0 && filter2.length > 0) {
+      data = fullData.filter((d) => (d.properties[var2] >= filter2[0] && d.properties[var2] < filter2[1]));
+    } else {
+      data = [...fullData];
+    }
+  }
 </script>
 
 <main>
   <h1>Chicago Census Data</h1>
 
   <div class="flex-container row">
-    <div class="map"><Map data={data}></Map></div>
+    <div class="map"><Map data={data} fullData={fullData}></Map></div>
     <div class="flex-container col">
-      <div class="hist"><Histogram bind:data={data} fullData={fullData} variable='percentWhite'></Histogram></div>
-      <div class="hist"><Histogram bind:data={data} fullData={fullData} variable='percentVacant'></Histogram></div>
+      <div class="hist"><Histogram data={data} fullData={fullData} variable={var1} bind:filter={filter1} update={updateData}></Histogram></div>
+      <div class="hist"><Histogram data={data} fullData={fullData} variable={var2} bind:filter={filter2} update={updateData}></Histogram></div>
     </div>
   </div>
 </main>

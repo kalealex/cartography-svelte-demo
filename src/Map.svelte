@@ -3,6 +3,7 @@
     import {legendColor} from 'd3-svg-legend';
 
     export let data;
+    export let fullData;
 
     let width = 500;
     let height = 500;
@@ -35,19 +36,23 @@
 <main>
     <svg {width} {height}>
         {#each data as d}
-          <path class = "geo"
-            style = "fill: {scale(+d.properties.population)};"
+          <path style = "fill: {scale(+d.properties.population)};"
             d={path(d)}/>
         {/each}
-    
+        {#each fullData as d}
+          <path class = "geooverlay"
+            d={path(d)}/>
+        {/each}
+
         <g transform="translate({width - 100}, 50)"
               bind:this={legend} />
       </svg>
 </main>
 
 <style>
-    .geo {
+    .geooverlay {
       stroke: grey;
       stroke-width: 1px;
+      fill: none;
     }
   </style>

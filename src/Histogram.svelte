@@ -4,6 +4,8 @@
     export let data;
     export let fullData;
     export let variable;
+    export let filter;
+    export let update;
 
     let margin = {top: 10, right: 30, bottom: 30, left: 40};
     let width = 360;
@@ -25,14 +27,18 @@
         if (event && event.selection) {
             // console.log(xScale.invert(event.selection[0]));
             // console.log(xScale.invert(event.selection[1]));
-            data = fullData.filter((d) => (d.properties[variable] >= xScale.invert(event.selection[0]) && d.properties[variable] < xScale.invert(event.selection[1])));
+            // data = fullData.filter((d) => (d.properties[variable] >= xScale.invert(event.selection[0]) && d.properties[variable] < xScale.invert(event.selection[1])));
+            filter = [xScale.invert(event.selection[0]), xScale.invert(event.selection[1])];
+            update();
         }
     }
 
     function brushended(event) {
         if (!event) {
             brushLayer.call(brush.move, defaultSelection);
-            data = [...fullData];
+            // data = [...fullData];
+            filter = [];
+            update();
         }
     }
 
