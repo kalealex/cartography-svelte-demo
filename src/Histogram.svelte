@@ -16,7 +16,6 @@
     let brushLayer;
     let xAxis;
     let yAxis;
-    let defaultSelection = null;
 
     const brush = d3.brushX()
         .extent([[0, 0], [chartW, chartH]])
@@ -25,18 +24,13 @@
 
     function brushed(event) {
         if (event && event.selection) {
-            // console.log(xScale.invert(event.selection[0]));
-            // console.log(xScale.invert(event.selection[1]));
-            // data = fullData.filter((d) => (d.properties[variable] >= xScale.invert(event.selection[0]) && d.properties[variable] < xScale.invert(event.selection[1])));
             filter = [xScale.invert(event.selection[0]), xScale.invert(event.selection[1])];
             update();
         }
     }
 
     function brushended(event) {
-        if (!event) {
-            brushLayer.call(brush.move, defaultSelection);
-            // data = [...fullData];
+        if (event && !event.selection) {
             filter = [];
             update();
         }
@@ -56,8 +50,7 @@
         .domain([0, d3.max(backgroundBins, (d) => d.length)]);
     $: {	
             d3.select(brushLayer)
-                .call(brush)
-                .call(brush.move, defaultSelection);
+                .call(brush);
             d3.select(xAxis)
                 .call(d3.axisBottom(xScale));
 

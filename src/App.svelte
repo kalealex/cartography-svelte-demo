@@ -13,7 +13,7 @@
   let var2 = 'percentVacant';
 
 	onMount(async function() {
-    // load data from csv
+    // load data from csv (source: https://chicagohealthatlas.org/download)
     let table = d3.csv('chi-health-data.csv', (d) => ({
           ...d,
           'Name': d['Name'].substring(6),
